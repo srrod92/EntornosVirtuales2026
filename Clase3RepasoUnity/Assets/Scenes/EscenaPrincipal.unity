@@ -1032,8 +1032,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   txtPuntaje: {fileID: 2034535949}
-  objetosDeJuego: {fileID: 0}
-  Boton: {fileID: 0}
+  objetosDeJuego: {fileID: 494056520}
+  Boton: {fileID: 788586470}
 --- !u!4 &1909031636
 Transform:
   m_ObjectHideFlags: 0
@@ -1297,6 +1297,7 @@ MonoBehaviour:
   puntoDisparo: {fileID: 0}
   fuerzaMultiplicador: 150
   maxArrastrePixeles: 400
+  minArrastrePixeles: 30
   offsetDistanciaCamara: 0.4
 --- !u!4 &2071355499
 Transform:

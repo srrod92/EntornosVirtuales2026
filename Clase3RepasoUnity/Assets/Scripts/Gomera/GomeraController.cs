@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+ //este script es el mas complejo que tiene el proyecto, les dejo algunos comentarios explicando que hace cada línea
 public class GomeraController : MonoBehaviour
 {
     [Header("Configuración del Proyectil")]
@@ -16,6 +17,9 @@ public class GomeraController : MonoBehaviour
 
     [Tooltip("Distancia máxima de arrastre en píxeles para limitar la potencia.")]
     [SerializeField] private float maxArrastrePixeles = 400f;
+
+    [Tooltip("Distancia minima de arrastre en píxeles para limitar la potencia.")]
+    [SerializeField] private float minArrastrePixeles = 30f;
 
     [Tooltip("Distancia frente a la cámara donde aparece la piedra al disparar.")]
     [SerializeField] private float offsetDistanciaCamara = 0.4f;
@@ -44,14 +48,14 @@ public class GomeraController : MonoBehaviour
         // Pointer.current detecta tanto toques en pantalla como clics de mouse
         if (Pointer.current == null) return;
 
-        // 1. Detecta el instante inicial al presionar la pantalla / hacer clic
+        // detectamos el momento en el que se inicia el arrastre
         if (Pointer.current.press.wasPressedThisFrame)
         {
             inicioToque = Pointer.current.position.ReadValue();
             estaArrastrando = true;
         }
 
-        // 2. Detecta el instante en que se suelta el dedo / clic
+        // detectamos el momento en el que finaliza el arrastre
         if (Pointer.current.press.wasReleasedThisFrame && estaArrastrando)
         {
             finToque = Pointer.current.position.ReadValue();
@@ -68,27 +72,28 @@ public class GomeraController : MonoBehaviour
             return;
         }
 
-        // Calcular la distancia de arrastre (deslizar hacia abajo da deltaY positivo)
+        
         Vector2 deltaArrastre = inicioToque - finToque;
 
-        // Ignorar si desliza hacia arriba o no hay movimiento
-        if (deltaArrastre.y <= 0) return;
+        // si el disparo es muy debil terminamos el metodo.
+        if (deltaArrastre.y <= minArrastrePixeles) return;
 
-        // Limitar y calcular porcentaje de potencia
-        float distanciaArrastre = Mathf.Clamp(deltaArrastre.y, 0f, maxArrastrePixeles);
+        // nos aseguramos que el arrastre este dentro del rango permitido
+        float distanciaArrastre = Mathf.Clamp(deltaArrastre.y, minArrastrePixeles, maxArrastrePixeles);
         float porcentajePotencia = distanciaArrastre / maxArrastrePixeles;
 
-        // Desviación horizontal relativa
+        // calculamos la desviacion en eje x
         float desvioHorizontal = ( inicioToque.x - finToque.x) / Screen.width;
 
-        // Instanciación del proyectil
+        // instanciamos la piedra
         Vector3 posicionOrigen = puntoDisparo.position + (camaraAR.transform.forward * offsetDistanciaCamara);
         GameObject piedraInstancia = Instantiate(piedraPrefab, posicionOrigen, Quaternion.identity);
 
+        //es necesario acceder al RigidBody para poder aplicar fuerza al objeto.
         Rigidbody rb = piedraInstancia.GetComponent<Rigidbody>();
         if (rb != null)
         {
-            // Vector de dirección 3D según la orientación de la cámara AR
+            // calculamos el vector de dirección según la orientación de la cámara.
             Vector3 direccionDisparo = (camaraAR.transform.forward + (camaraAR.transform.up * 0.2f) + (camaraAR.transform.right * desvioHorizontal)).normalized;
             float fuerzaFinal = porcentajePotencia * fuerzaMultiplicador;
 
